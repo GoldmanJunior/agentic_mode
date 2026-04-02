@@ -3,6 +3,7 @@ import random
 import anthropic
 import os
 from dotenv import load_dotenv
+import json
 
 load_dotenv() 
 
@@ -75,6 +76,27 @@ tools = [
               },
               "required": ["score", "event"]
           }
+      },
+      {
+            "name": "save_incident",
+            "description": "Sauvegarde un incident dans un fichier json.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "incident": {
+                        "type": "object",
+                        "properties": {
+                            "timestamp": {"type": "string"},
+                            "src_ip": {"type": "string"},
+                            "event_type": {"type": "string"},
+                            "score": {"type": "integer"},
+                            "action": {"type": "string"}
+                        },
+                        "required": ["timestamp", "src_ip", "event_type", "score", "action"]
+                    }
+                },
+                "required": ["incident"]
+            }
       }
 ]
 
@@ -171,7 +193,7 @@ def calculate_anomalie_score(event):
 
     return min(score, 100)
 
-def decide_action(score,event):
+def decide_action(score, event):
     '''Décide de l'action à prendre en fonction du score d'anomalie et du type d'événement'''
     if score >= 80:
         return {
@@ -209,6 +231,46 @@ def decide_action(score,event):
                 "confidence": 1.0
         }
 
+def save_incident(incident):
+    '''Sauvegarde l'incident dans un fichier json'''
+    event={
+        "timestamp": incident["timestamp"],
+        "src_ip": incident["src_ip"],
+        "event_type": incident["event_type"],
+        "score": incident["score"],
+        "action":incident["action"],
+    }
+    if os.path.exists("memory.json"):
+        with open("memory.json", 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    else:
+        data = {"incidents": []}
+    
+    data["incidents"].append(event)
+
+    with open("memory.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+def load_incidents():
+    '''Charge les incidents depuis le fichier json'''
+    try:
+        with open("memory.json", "r") as f:
+            try:
+                incidents = json.load(f)
+                return incidents["incidents"]
+            except json.JSONDecodeError:
+                return []
+    except FileNotFoundError:
+        return []
+
+def human_in_the_loop_decision(action_decision):
+    '''en cas d'action irreversible comme QUARANTINE ou BLOCK_IP, demande la validation de l'humain pour valider ou invalider la décision de l'agent'''
+    if action_decision["action"] == "QUARANTINE" or action_decision["action"] == "BLOCK_IP":
+        response=input(f"Action proposée : {action_decision}. Validez-vous cette action ? True/False : ").lower().strip()
+        return response in ["true", "yes", "y", "oui", "o"]
+    else:
+        return False
+    
 def execute_tool(tool_name: str, tool_input: dict) -> dict:
     if tool_name == "calculate_anomalie_score":
         event = tool_input["event"]
@@ -222,19 +284,33 @@ def execute_tool(tool_name: str, tool_input: dict) -> dict:
         score = tool_input["score"]
         event = tool_input["event"]
         action_decision = decide_action(score, event)
-        return {"action_decision": action_decision}
+        approved = human_in_the_loop_decision(action_decision)
+        if approved:
+            return {"action_decision": action_decision, "status": "approved"}
+        else:
+            return {"action_decision": action_decision, "status": "rejected", "message": f"Action {action_decision['action']} annulée par l'analyste"}
+    elif tool_name == "save_incident":
+        incident = tool_input["incident"]
+        save_incident(incident)
+        return {"status": "incident_saved"}
     else:
         raise ValueError(f"Tool inconnu : {tool_name}")
     
 def run_agent(user_message: str, max_iterations: int = 10) -> str:
-    messages = [{"role": "user", "content": user_message}]
+    incidents = load_incidents()
+    if incidents:
+        memory_context= f"Historique des incidents précédents : {json.dumps(incidents, indent=2)}"
+    else:
+        memory_context= "Aucun incident précédent en mémoire."
 
+    messages = [{"role": "user", "content": user_message}]
     for iteration in range(max_iterations):
         print(f"[Iteration {iteration + 1}]")
         response = client.messages.create(
             model="claude-sonnet-4-5",
             max_tokens=4096,
             tools=tools,
+            system=memory_context,
             messages=messages
         )
         print(f"Stop reason: {response.stop_reason}")
@@ -262,5 +338,5 @@ def run_agent(user_message: str, max_iterations: int = 10) -> str:
 
     return "Nombre maximum d'iterations atteint."
 if __name__ == "__main__":
-    result = run_agent("Génère un événement de chaque type (normale, port_scan, ddos, brute_force), calcule le score d'anomalie de chacun, décide l'action à prendre, et présente un rapport de synthèse.")
+    result = run_agent("Génère un événement ddos et analyse-le.")
     print(result)

@@ -1,0 +1,39 @@
+{
+    "incidents": [
+        {
+            "timestamp": "2026-04-02T00:12:08.812148",
+            "src_ip": "31.177.134.217",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "QUARANTINE"
+        },
+        {
+            "timestamp": "2026-04-02T00:12:08.812241",
+            "src_ip": "74.94.94.96",
+            "event_type": "brute_force",
+            "score": 70,
+            "action": "BLOCK_IP"
+        },
+        {
+            "timestamp": "2026-04-02T00:17:00.317415",
+            "src_ip": "139.23.18.204",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "QUARANTINE"
+        },
+        {
+            "timestamp": "2026-04-02T00:57:10.396766",
+            "src_ip": "83.1.27.38",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "QUARANTINE"
+        },
+        {
+            "timestamp": "2026-04-02T00:59:35.233766",
+            "src_ip": "91.86.225.203",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "QUARANTINE"
+        }
+    ]
+}
