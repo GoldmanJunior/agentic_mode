@@ -34,6 +34,20 @@
             "event_type": "ddos",
             "score": 80,
             "action": "QUARANTINE"
+        },
+        {
+            "timestamp": "2026-04-03T00:33:02.410815",
+            "src_ip": "27.245.114.236",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "QUARANTINE"
+        },
+        {
+            "timestamp": "2026-04-03T00:57:42.067374",
+            "src_ip": "24.67.170.56",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "QUARANTINE"
         }
     ]
 }

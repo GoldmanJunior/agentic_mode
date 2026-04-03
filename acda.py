@@ -1,4 +1,5 @@
 import datetime
+from pyexpat.errors import messages
 import random
 import anthropic
 import os
@@ -97,7 +98,52 @@ tools = [
                 },
                 "required": ["incident"]
             }
-      }
+      },
+        {
+                "name": "calculate_metrics",
+                "description": "Calcule les métriques à partir des données de mémoire.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "memory_file": {
+                            "type": "string",
+                            "description": "Le chemin vers le fichier de mémoire contenant les incidents"
+                        }
+                    },
+                    "required": ["memory_file"]
+                }
+        },
+        {
+                "name": "llm_judge",
+                "description": "Utilise un LLM pour juger de la pertinence d'une décision d'action en fonction de l'incident.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "action_decision": {
+                            "type": "object",
+                            "properties": {
+                                "action": {"type": "string"},
+                                "target": {"type": "string"},
+                                "justification": {"type": "string"},
+                                "confidence": {"type": "number"}
+                            },
+                            "required": ["action", "target", "justification", "confidence"]
+                        },
+                        "incident": {
+                            "type": "object",
+                            "properties": {
+                                "timestamp": {"type": "string"},
+                                "src_ip": {"type": "string"},
+                                "event_type": {"type": "string"},
+                                "score": {"type": "integer"},
+                                "action": {"type": "string"}
+                            },
+                            "required": ["timestamp", "src_ip", "event_type", "score", "action"]
+                        }
+                    },
+                    "required": ["action_decision", "incident"]
+                }
+        }
 ]
 
 def generer_ip_aleatoire():
@@ -270,30 +316,103 @@ def human_in_the_loop_decision(action_decision):
         return response in ["true", "yes", "y", "oui", "o"]
     else:
         return False
+
+def log_event(level,message,data=None):
+    '''log les événements importants pour le débug et l'audit'''
+    if message:
+        try:            
+            with open("acda.log", "a", encoding='utf-8') as f:
+                log_entry = f"{datetime.datetime.now().isoformat()} - {level} - {message}"
+                if data:
+                    log_entry += f" - Data: {json.dumps(data)}"
+                f.write(log_entry + "\n")
+        except Exception as e:
+            print(f"Erreur lors de l'écriture du log : {e}")
+
+def calculate_metrics(memory_file):
+    '''Calcule les métriques à partir des données de mémoire'''
+    try:
+        with open(memory_file, 'r',encoding='utf-8') as f:
+            data = json.load(f)
+            incidents = data.get("incidents", [])
+            total_incidents = len(incidents)
+            action_counts = {}
+            for incident in incidents:
+                action = incident.get("action", "UNKNOWN")
+                action_counts[action] = action_counts.get(action, 0) + 1
+            event_type_counts = {}
+            for incident in incidents:
+                event_type = incident.get("event_type", "UNKNOWN")
+                event_type_counts[event_type] = event_type_counts.get(event_type, 0) + 1
+            metrics = {
+                "total_incidents": total_incidents,
+                "action_distribution": action_counts,
+                "score_moyen": sum(incident.get("score", 0) for incident in incidents) / total_incidents if total_incidents > 0 else 0,
+                "type_attaque_distribution": event_type_counts
+            }
+            return metrics
+    except FileNotFoundError:
+        print(f"Fichier de mémoire {memory_file} non trouvé.")
+        return {"total_incidents": 0, "action_distribution": {}, "score_moyen": 0}
+
+def llm_judge(action_decision,incident):
+    '''Utilise un LLM pour juger de la pertinence d'une décision d'action en fonction de l'incident'''
+
+    prompt = f'''Incident : {incident}\nDécision d'action : {action_decision}\n'''
     
+    response = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=4096,
+        system='''Tu es un expert en cybersécurité chargé d'évaluer les décisions d'un agent de défense autonome. 
+        Évalue si l'action proposée est appropriée, proportionnelle et bien justifiée.
+        Retourne une évaluation structurée avec : verdict (APPROUVÉ/REFUSÉ), score de qualité (0-100), et justification courte.''',
+        messages=[{"role": "user", "content": prompt}]
+    )
+    judgement = next(
+        block.text for block in response.content
+        if hasattr(block, "text")
+    ).strip()
+    return judgement 
+
 def execute_tool(tool_name: str, tool_input: dict) -> dict:
     if tool_name == "calculate_anomalie_score":
         event = tool_input["event"]
         score = calculate_anomalie_score(event)
+        log_event("INFO", "Score d'anomalie calculé", {"event_type": event["event_type"], "src_ip": event["src_ip"], "score": score})
         return {"anomalie_score": score}
     elif tool_name == "generate_network_event":
         event_type = tool_input["event_type"]
         event = generate_network_event(event_type)
+        log_event("INFO", "Événement réseau généré", {"event": event})
         return {"event": event}
     elif tool_name == "decide_action":
         score = tool_input["score"]
         event = tool_input["event"]
         action_decision = decide_action(score, event)
+        log_event("INFO", f"Décision d'action prise : {action_decision}", {"action_decision": action_decision})
         approved = human_in_the_loop_decision(action_decision)
         if approved:
+            log_event("INFO", f"Action approuvée : {action_decision}", {"action_decision": action_decision})
             return {"action_decision": action_decision, "status": "approved"}
         else:
+            log_event("WARNING", f"Action rejetée par l'analyste", {"action_decision": action_decision})
             return {"action_decision": action_decision, "status": "rejected", "message": f"Action {action_decision['action']} annulée par l'analyste"}
     elif tool_name == "save_incident":
         incident = tool_input["incident"]
         save_incident(incident)
+        log_event("INFO", f"Incident sauvegardé", {"incident": incident})
         return {"status": "incident_saved"}
+    elif tool_name == "calculate_metrics":
+        memory_file = tool_input["memory_file"]
+        metrics = calculate_metrics(memory_file)
+        return {"metrics": metrics}
+    elif tool_name == "llm_judge":
+        action_decision = tool_input["action_decision"]
+        incident = tool_input["incident"]
+        judgement = llm_judge(action_decision, incident)
+        return {"judgement": judgement}
     else:
+        log_event("ERROR", f"Tool inconnu : {tool_name}")
         raise ValueError(f"Tool inconnu : {tool_name}")
     
 def run_agent(user_message: str, max_iterations: int = 10) -> str:
@@ -338,5 +457,5 @@ def run_agent(user_message: str, max_iterations: int = 10) -> str:
 
     return "Nombre maximum d'iterations atteint."
 if __name__ == "__main__":
-    result = run_agent("Génère un événement ddos et analyse-le.")
+    result = run_agent("Génère un événement ddos, calcule le score, décide l'action, et demande au juge LLM d'évaluer la décision.")
     print(result)
