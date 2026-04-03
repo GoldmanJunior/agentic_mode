@@ -1,0 +1,25 @@
+{
+    "incidents": [
+        {
+            "timestamp": "2026-04-03T19:14:47.052218",
+            "src_ip": "233.48.151.214",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "QUARANTINE"
+        },
+        {
+            "timestamp": "2026-04-03T19:15:22.308104",
+            "src_ip": "32.115.227.48",
+            "event_type": "port_scan",
+            "score": 40,
+            "action": "ALERT"
+        },
+        {
+            "timestamp": "2026-04-03T19:47:05.702004",
+            "src_ip": "7.247.138.120",
+            "event_type": "ddos",
+            "score": 80,
+            "action": "NO_ACTION"
+        }
+    ]
+}

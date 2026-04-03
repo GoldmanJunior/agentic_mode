@@ -1,0 +1,140 @@
+2026-04-03T19:15:05.287916 - INFO - Incident traité : {'timestamp': '2026-04-03T19:14:47.052218', 'src_ip': '233.48.151.214', 'event_type': 'ddos', 'score': 80, 'action': 'QUARANTINE'}, Décision d'action : {'action': 'QUARANTINE', 'target': '233.48.151.214', 'justification': "Score d'anomalie élevé (80), événement de type ddos", 'confidence': 0.8}, Jugement du LLM : # ÉVALUATION DE LA DÉCISION DE DÉFENSE
+
+## VERDICT : ✅ APPROUVÉ
+
+## SCORE DE QUALITÉ : 85/100
+
+## ANALYSE DÉTAILLÉE
+
+### Points Positifs
+- ✅ **Action proportionnelle** : QUARANTINE est approprié pour un DDoS avec score 80/100
+- ✅ **Justification cohérente** : Corrélation claire entre le score élevé et le type d'incident
+- ✅ **Niveau de confiance raisonnable** : 0.8 reflète bien la certitude de la menace
+- ✅ **Ciblage précis** : Action sur l'IP source identifiée
+
+### Points d'Amélioration
+- ⚠️ **Manque de contexte** : Aucune vérification si l'IP est légitime/partenaire
+- ⚠️ **Pas de durée spécifiée** : La quarantaine devrait avoir une limite temporelle
+- ⚠️ **Absence d'analyse de pattern** : Pas de vérification si c'est une IP spoofée
+
+### Recommandations
+1. Ajouter une vérification contre une whitelist avant quarantaine
+2. Définir une durée de quarantaine (ex: 24h avec réévaluation)
+3. Envisager un blocage temporaire au lieu d'une quarantaine complète
+4. Logger l'action pour audit et analyse post-incident
+
+## CONCLUSION
+Décision **VALIDÉE** - Action défensive appropriée pour un incident DDoS de sévérité élevée, avec un bon équilibre entre sécurité et prudence opérationnelle.
+2026-04-03T19:15:22.084352 - INFO - Incident traité : {'timestamp': '2026-04-03T19:15:05.290299', 'src_ip': '45.97.186.23', 'event_type': 'brute_force', 'score': 70, 'action': 'NO_ACTION'}, Décision d'action : {'action': 'NO_ACTION', 'target': '45.97.186.23', 'justification': "Action initiale BLOCK_IP annulée par l'humain, score d'anomalie 70, événement de type brute_force", 'confidence': 1.0}, Jugement du LLM : # ÉVALUATION DE LA DÉCISION DE DÉFENSE
+
+## 📊 VERDICT : **REFUSÉ**
+
+## 🎯 Score de Qualité : **25/100**
+
+## 📝 ANALYSE DÉTAILLÉE
+
+### ⚠️ Problèmes Identifiés :
+
+1. **Inaction face à une menace claire** (Critique)
+   - Type d'incident : Brute Force (attaque active)
+   - Score de sévérité : 70/100 (niveau élevé)
+   - Risque : Compromission de comptes utilisateurs
+
+2. **Justification inadéquate**
+   - L'argument "action annulée par l'humain" n'est pas une justification technique valide
+   - Aucune analyse du contexte actuel de la menace
+   - Pas de mesures alternatives proposées
+
+3. **Proportionnalité inexistante**
+   - Pour un brute force avec score 70 : NO_ACTION est insuffisant
+   - Mesures minimales attendues : rate limiting, blocage temporaire, ou surveillance renforcée
+
+### ✅ Point Positif :
+- Confiance élevée dans la décision (1.0) montre une analyse claire
+
+## 🔧 RECOMMANDATION
+
+**Action suggérée :** BLOCK_IP (temporaire) ou RATE_LIMIT
+
+**Justification :** Une attaque par brute force active avec un score de 70 nécessite une réponse immédiate pour protéger les comptes utilisateurs. Un blocage IP temporaire (1-24h) ou un rate limiting strict serait proportionnel et réversible.
+
+**Mesures complémentaires :**
+- Vérifier les logs d'authentification
+- Alerter l'équipe SOC
+- Surveiller l'IP pour récidive
+2026-04-03T19:15:34.449387 - INFO - Incident traité : {'timestamp': '2026-04-03T19:15:22.308104', 'src_ip': '32.115.227.48', 'event_type': 'port_scan', 'score': 40, 'action': 'ALERT'}, Décision d'action : {'action': 'ALERT', 'target': '32.115.227.48', 'justification': "Score d'anomalie faible (40), événement de type port_scan", 'confidence': 0.4}, Jugement du LLM : # ÉVALUATION DE LA DÉCISION DE DÉFENSE
+
+## 📋 ANALYSE DE L'INCIDENT
+- **Type d'événement** : Port scan
+- **IP source** : 32.115.227.48
+- **Score d'anomalie** : 40/100 (faible)
+- **Action initiale** : ALERT
+
+## ⚖️ ÉVALUATION DE LA DÉCISION
+
+### **VERDICT : ✅ APPROUVÉ**
+
+### **Score de qualité : 85/100**
+
+## 🔍 JUSTIFICATION
+
+### Points positifs :
+1. **Proportionnalité appropriée** : Pour un score de 40, l'ALERT est une réponse mesurée (ni sous-réaction, ni sur-réaction)
+2. **Cohérence** : L'action ALERT correspond bien à un port scan à faible score
+3. **Niveau de confiance réaliste** : 0.4 reflète correctement l'ambiguïté de la situation
+4. **Justification claire** : La décision est bien documentée
+
+### Points d'amélioration (-15 points) :
+1. **Manque de contexte** : Pas d'analyse de récurrence (cette IP a-t-elle déjà scanné ?)
+2. **Pas de recommandation de suivi** : Durée de surveillance suggérée absente
+3. **Seuil de confiance bas** : 0.4 suggère une incertitude élevée - pourrait nécessiter validation humaine
+
+## 📊 RECOMMANDATIONS
+
+- ✅ **Maintenir l'ALERT** pour surveillance
+- ⚠️ Corréler avec l'historique de 32.115.227.48
+- 📈 Escalader vers BLOCK si récidive dans les 24h
+- 👤 Notifier l'analyste SOC pour validation si score > 50 ou récurrence
+
+**Conclusion** : Décision appropriée et sûre pour un incident à faible risque.
+2026-04-03T19:15:42.137592 - INFO - Incident traité : {'timestamp': '2026-04-03T19:15:34.450398', 'src_ip': '76.40.66.251', 'event_type': 'normale', 'score': 0, 'action': 'NO_ACTION'}, Décision d'action : {'action': 'NO_ACTION', 'target': '76.40.66.251', 'justification': "Score d'anomalie nul (0), événement de type normale", 'confidence': 1.0}, Jugement du LLM : # ÉVALUATION DE LA DÉCISION DE DÉFENSE
+
+## 📋 Analyse de l'incident
+- **Type d'événement** : normale
+- **Score d'anomalie** : 0/100
+- **IP source** : 76.40.66.251
+- **Horodatage** : 2026-04-03 19:15:34
+
+## 🎯 Évaluation de l'action proposée
+
+### Verdict : ✅ **APPROUVÉ**
+
+### Score de qualité : **100/100**
+
+### Justification
+La décision de **NO_ACTION** est **parfaitement appropriée** pour les raisons suivantes :
+
+1. **Proportionnalité optimale** : Aucune action défensive n'est nécessaire face à un trafic normal (score = 0)
+
+2. **Cohérence analytique** : L'événement classifié comme "normale" avec un score d'anomalie nul ne présente aucun indicateur de menace
+
+3. **Efficience opérationnelle** : Évite les faux positifs et la consommation inutile de ressources de défense
+
+4. **Confiance maximale** : Le niveau de confiance de 1.0 reflète une analyse claire et non ambiguë
+
+### Recommandations
+- ✅ Maintenir la surveillance passive
+- ✅ Continuer le monitoring pour détecter tout changement de pattern
+- ✅ Aucune action immédiate requise
+
+**Conclusion** : Décision exemplaire alignée avec les meilleures pratiques de cybersécurité.
+2026-04-03T19:42:18.629366 - INFO - Événement réseau généré - Data: {"event": {"timestamp": "2026-04-03T19:42:18.629068", "src_ip": "104.79.56.193", "dst_ip": "243.246.254.124", "port": 26710, "protocol": "TCP", "bytes": 395899, "packets": 1012, "event_type": "ddos"}}
+2026-04-03T19:44:21.851602 - INFO - Événement réseau généré - Data: {"event": {"timestamp": "2026-04-03T19:44:21.851310", "src_ip": "140.177.227.193", "dst_ip": "165.250.2.19", "port": 54784, "protocol": "TCP", "bytes": 150801, "packets": 6802, "event_type": "ddos"}}
+2026-04-03T19:44:24.578418 - INFO - Score d'anomalie calculé - Data: {"event_type": "ddos", "src_ip": "140.177.227.193", "score": 80}
+2026-04-03T19:44:32.998679 - INFO - Décision d'action prise : {'action': 'NO_ACTION', 'target': '140.177.227.193', 'justification': "Action initiale QUARANTINE annulée par l'humain, score d'anomalie 80, événement de type ddos", 'confidence': 1.0} - Data: {"action_decision": {"action": "NO_ACTION", "target": "140.177.227.193", "justification": "Action initiale QUARANTINE annul\u00e9e par l'humain, score d'anomalie 80, \u00e9v\u00e9nement de type ddos", "confidence": 1.0}}
+2026-04-03T19:44:49.248385 - INFO - Jugement LLM obtenu - Data: {"judgement": "# \u00c9VALUATION DE LA D\u00c9CISION DE D\u00c9FENSE\n\n## \ud83d\udcca VERDICT : **REFUS\u00c9**\n\n## \ud83c\udfaf Score de Qualit\u00e9 : **25/100**\n\n---\n\n## \ud83d\udccb ANALYSE D\u00c9TAILL\u00c9E\n\n### Contexte de l'incident\n- **Type d'attaque** : DDoS confirm\u00e9\n- **Score d'anomalie** : 80/100 (seuil critique)\n- **Volume** : 150 801 bytes, 6 802 paquets\n- **IP source** : 140.177.227.193\n- **Port cible** : 54784 (TCP)\n\n### Probl\u00e8mes identifi\u00e9s avec la d\u00e9cision\n\n\ud83d\udd34 **INCOH\u00c9RENCE MAJEURE** : L'agent abdique sa responsabilit\u00e9 apr\u00e8s une intervention humaine ant\u00e9rieure sans r\u00e9\u00e9valuer les risques actuels.\n\n**Points critiques :**\n\n1. **Menace persistante non trait\u00e9e** : Un DDoS actif avec score 80 n\u00e9cessite une r\u00e9ponse imm\u00e9diate\n2. **Volume anormal** : 6 802 paquets indiquent une activit\u00e9 malveillante continue\n3. **Inaction dangereuse** : NO_ACTION face \u00e0 une attaque confirm\u00e9e expose l'infrastructure\n4. **Justification faible** : Se baser uniquement sur une d\u00e9cision humaine pass\u00e9e sans contexte temporel\n\n### Recommandation correcte\n\n\u2705 **ACTION APPROPRI\u00c9E** : \n- **RATE_LIMITING** (priorit\u00e9 1) ou **BLOCK_TEMPORARY** (15-30 min)\n- R\u00e9duire l'impact tout en permettant une investigation\n- Alerter l'\u00e9quipe SOC pour validation si intervention humaine requise\n\n---\n\n## \ud83d\udcac JUSTIFICATION\n\nL'agent confond **d\u00e9f\u00e9rence envers l'humain** et **abandon de sa mission**. Un score d'anomalie de 80 sur un \u00e9v\u00e9nement DDoS actif requiert une mitigation imm\u00e9diate. La d\u00e9cision humaine ant\u00e9rieure doit \u00eatre respect\u00e9e, mais l'agent doit **proposer une nouvelle \u00e9valuation** bas\u00e9e sur les donn\u00e9es actuelles, pas s'abstenir compl\u00e8tement."}
+2026-04-03T19:47:05.702302 - INFO - Événement réseau généré - Data: {"event": {"timestamp": "2026-04-03T19:47:05.702004", "src_ip": "7.247.138.120", "dst_ip": "154.50.192.77", "port": 12423, "protocol": "TCP", "bytes": 58902, "packets": 1263, "event_type": "ddos"}}
+2026-04-03T19:47:08.556230 - INFO - Score d'anomalie calculé - Data: {"event_type": "ddos", "src_ip": "7.247.138.120", "score": 80}
+2026-04-03T19:47:16.260613 - INFO - Décision d'action prise : {'action': 'NO_ACTION', 'target': '7.247.138.120', 'justification': "Action initiale QUARANTINE annulée par l'humain, score d'anomalie 80, événement de type ddos", 'confidence': 1.0} - Data: {"action_decision": {"action": "NO_ACTION", "target": "7.247.138.120", "justification": "Action initiale QUARANTINE annul\u00e9e par l'humain, score d'anomalie 80, \u00e9v\u00e9nement de type ddos", "confidence": 1.0}}
+2026-04-03T19:47:30.904155 - INFO - Jugement LLM obtenu - Data: {"judgement": "# \u00c9VALUATION DE LA D\u00c9CISION DE D\u00c9FENSE\n\n## VERDICT : \u26a0\ufe0f **REFUS\u00c9**\n\n## SCORE DE QUALIT\u00c9 : 25/100\n\n## ANALYSE D\u00c9TAILL\u00c9E\n\n### Points Critiques Identifi\u00e9s :\n\n1. **Incoh\u00e9rence Strat\u00e9gique Majeure** \ud83d\udd34\n   - \u00c9v\u00e9nement clairement identifi\u00e9 comme **DDoS** (attaque par d\u00e9ni de service)\n   - Score d'anomalie \u00e9lev\u00e9 : **80/100**\n   - Volume anormal : 58 902 bytes en 1 263 paquets\n   - **Inaction totale malgr\u00e9 une menace av\u00e9r\u00e9e**\n\n2. **Probl\u00e8me de Gouvernance** \ud83d\udd34\n   - La justification mentionne une annulation humaine d'une quarantaine\n   - L'agent devrait proposer des **actions alternatives**, pas une inaction totale\n   - Confiance \u00e0 100% dans le \"ne rien faire\" est dangereuse\n\n3. **Risque R\u00e9siduel Non G\u00e9r\u00e9** \ud83d\udd34\n   - IP source (7.247.138.120) reste active et peut continuer l'attaque\n   - Aucune mesure de limitation de d\u00e9bit (rate limiting)\n   - Vuln\u00e9rabilit\u00e9 de l'IP cible (154.50.192.77) non adress\u00e9e\n\n### Recommandations d'Actions Appropri\u00e9es :\n\n```\nACTION GRADU\u00c9E RECOMMAND\u00c9E :\n1. Rate Limiting sur l'IP source (priorit\u00e9 haute)\n2. Surveillance renforc\u00e9e du trafic\n3. Alerte envoy\u00e9e \u00e0 l'\u00e9quipe SOC\n4. Si escalade : blacklist temporaire (1-4h)\n```\n\n## JUSTIFICATION\n\nFace \u00e0 un DDoS confirm\u00e9 avec score d'anomalie de 80, l'inaction expose l'infrastructure \u00e0 des risques continus. Si la quarantaine a \u00e9t\u00e9 refus\u00e9e, l'agent doit proposer des mesures interm\u00e9diaires proportionn\u00e9es, pas abandonner toute d\u00e9fense."}
+2026-04-03T19:47:35.720810 - INFO - Incident sauvegardé - Data: {"incident": {"timestamp": "2026-04-03T19:47:05.702004", "src_ip": "7.247.138.120", "dst_ip": "154.50.192.77", "port": 12423, "protocol": "TCP", "bytes": 58902, "packets": 1263, "event_type": "ddos", "score": 80, "action": "NO_ACTION", "target": "7.247.138.120", "justification": "Action initiale QUARANTINE annul\u00e9e par l'humain, score d'anomalie 80, \u00e9v\u00e9nement de type ddos", "confidence": 1.0, "evaluation": "REFUS\u00c9 - Score 25/100 - Inaction inappropri\u00e9e face \u00e0 une attaque DDoS confirm\u00e9e"}}
